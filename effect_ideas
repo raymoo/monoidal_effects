@@ -1,0 +1,134 @@
+
+Effect Monoids
+==============
+
+Idea
+----
+Conceptually, a collection of stacking effects can be considered a monoid.
+
+Definition
+----------
+An effect monoid should have the following defined:
+
+  A set of values that can represent an effect in this group (domain)
+
+  At least one of the two:
+   
+    A combining function: should be a binary operation that forms a monoid on
+    the domain (i.e. is associative, and has an identity)
+
+    A folding function: combines all the elements in a table, according to
+    some monoidal combination. Now you get a combining function, just put
+    the two elements in a table. Using that combination function to combine
+    all the values in the table should be equivalent to just applying the
+    folding function.
+
+    If both are defined, then the combining function should give the same
+    answer as putting the two elements in a table and folding.
+
+    For optimal performance, you should define both.
+
+  An identity: Something in the domain, that when combined with another element,
+  always results in the other element.
+
+  A function to apply effects to the player (A function for cancel is unneeded,
+  just apply the identity). Using the identity should put the player in some
+  sensible default state.
+
+Optionally, it can have
+
+  A function ran on every change, in case special effects or messages should be
+  displayed. This will probably only be run when the player in question is
+  online.
+
+
+Effect Types
+============
+
+Definition
+----------
+Perhaps there can be two kinds of effect types, static and dynamic.
+
+A static effect type should have the following properties
+
+   A name
+   A display name
+   A set of string tags
+   A map from monoids it is in to associated values
+   A set of players it applies to (possibly include a special value for global?)
+   Whether it is hidden from the players it applies to
+   Whether it should be cancelled on death
+
+A dynamic effect type should have the following properties
+
+  A name
+  A display name
+  A set of string tags
+  A set of monoids it can apply to
+  A function for serializing the table of monoid things it has
+    (Default minetest.serialize)
+  A set of players it applies to
+  Whether it is hidden from the players it applies to
+  Whether it should be cancelled on death
+
+
+Effects
+=======
+
+Definition
+----------
+The following properties:
+
+  A unique ID
+  A type (static or dynamic)
+  An associated effect type
+  A duration (can be permanent)
+
+If its type is a dynamic effect type, it can also have a table of values
+to use. Any value not in the table will be treated as the identity. The default
+is an empty table.
+
+
+API
+===
+A way to register new effect monoids
+
+A way to register new effect types
+
+A way to register an effect monoid as the child of another
+(so its values contribute)
+
+A way to get the current status for a player, in some effect group
+
+A way to apply an effect to a player
+
+A way to remove an effect from a player
+
+A way to get an effect's information by id
+
+A way to get a relational table of effects (with operations like Haskell's ixset)
+
+  Indexed by:
+
+  Player name (many-to-many)
+  Tag (many-to-many)
+  Group (many-to-many)
+  Name (one-to-many?)
+  Whether it is permanent
+
+Simpler operations on top of the relational interface
+
+
+Implementation
+==============
+Effects can be arranged in a relational table like an ixset, but ordered only on
+their unique ids. A set with id ordering can be represented with a map from id
+to effect record. To serialize, can additionally keep another map from id to
+record, that just holds all the effects.
+
+When a player is on the server, the temporary effects they have should be kept
+track of and updated, otherwise should be removed from activity.
+
+Only allow effects with a duration of a second?
+
+Configurable effect update timestep?
