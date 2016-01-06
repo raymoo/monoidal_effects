@@ -1,0 +1,63 @@
+The idea behind this framework is that player status effects, both permanent
+and temporary, should mesh nicely with each other. This means they need to be
+able to be combined.
+
+Effect Monoids
+==============
+An effect monoid covers a single kind of player state a status effect might
+affect. These are things like flying ability, speed multiplier, or
+fighting ability. Each kind of state can be represented by a certain type of
+value: a boolean for flying ability, or a number for speed or fighting ability.
+Each effect that contributes to an effect monoid supplies one of these data
+values, and then all of these are combined together. The combined value is
+then interpreted and converted into effects on the world state. Flying privs
+would be set, and physics overrides would be used to change a player's speed.
+Something like fighting points might not have an immediate effect, but
+your mod could later get the current value and do things with it, for example
+augmenting the power of a player's punches in a punch callback.
+
+Definition
+----------
+An effect monoid definition needs the following:
+
+  combine(elem1, elem2) - associative binary operation (explained below)
+  fold({elems}) - combine a whole list (explained below)
+  identity - (explained below)
+  apply(value, player) - explained below
+  on_change(val1, val2, player) - explained below (optional)
+
+  Additionally, you should document what values are valid for effects to
+  contribute to this monoid.
+
+combine and fold
+- - - - - - - -
+combine should take two valid effect values and produce a third value, that is
+also valid. combine should also be associative. fold should take a table and
+combine the values together, in key order, and should be equivalent to using
+combine to combine all the values.
+
+If you only define one of the two, the undefined one will be defined in terms
+of one that is defined. However, you are highly encouraged to define both, for
+performance reasons.
+
+identity
+- - - -
+identity, when combined with any other value, should result in that other value.
+It also represents the "default" or "neutral" state of the player, and will be
+used when there are no status effects active for a particular monoid.
+
+apply
+- - -
+apply is the function that interprets the current combined value in the monoid,
+and applies its effects to the player.
+
+on_change
+- - - - -
+This function is called whenever there is a change in the monoid value for a
+player that is online. This can be used to show special effects such as sounds,
+particles, or messages. It should not change the state controlled by this monoid.
+The two values passed in are not guaranteed to be different, so plan accordingly.
+
+
+Effect Types
+============
