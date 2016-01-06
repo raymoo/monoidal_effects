@@ -10,5 +10,17 @@ with_index("index_name", index) - Gets a set of all UIDs with that index.
 Other functions
 ---------------
 effectset.new_set() - Makes a new effectset
+effectset.serialize(effectset) - Serializes the effectset
+effectset.deserialize(effectset) - Deserializes
 effectset.intersect - Intersects two effectsets (not much use yet)
 effectset.union - Unions two effectsets (not much use yet)
+
+Tables
+------
+These can be used with with_index
+
+  player - Player names an effect applies to
+  tag - Tags an effect has
+  monoid - Monoids an effect belongs to
+  name - The name of an effect
+  perm - Whether the effect is permanent

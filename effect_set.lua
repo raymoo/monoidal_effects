@@ -139,11 +139,11 @@ local function set_union(set1, set2)
 	local res_set = {}
 
 	for k, v in pairs(set1) do
-		res_set[k] = v
+		res_set[k] = true
 	end
 
 	for k, v in pairs(set2) do
-		res_set[k] = v
+		res_set[k] = true
 	end
 
 	return res_set
@@ -209,24 +209,6 @@ local function shallow_copy(x)
 	end
 
 	return res
-end
-
-
--- Prepares for serialization.
-local function prep_record(record, cur_time)
-
-	-- Save the amount of time left
-	if (not is_perm(record)) then
-		record.duration = record.duration - (cur_time - record.time_started)
-	end
-
-	record.time_started = nil
-end
-
-
--- Sets the time_started nicely.
-local function unprep_record(record, cur_time)
-	record.time_started = cur_time
 end
 
 
@@ -344,10 +326,6 @@ end
 local function serialize_effect_set(eset)
 	local serialize_this = shallow_copy(eset.uid_table)
 
-	for k, v in pairs(uid_table) do
-		prep_record(v)
-	end
-
 	serialize_this.get = nil
 	serialize_this.effects = nil
 	serialize_this.tables = nil
@@ -359,8 +337,11 @@ end
 local function deserialize_effect_set(str)
 	local deserialized = minetest.deserialize(str)
 
+	if (deserialized == nil) then
+		return nil
+	end
+
 	for k, v in pairs(deserialized) do
-		unprep_record(v)
 		insert_record_with_uid(k, deserialized, v)
 	end
 	
@@ -374,6 +355,10 @@ end
 local effectset = {}
 
 effectset.new_set = make_db
+
+effectset.serialize = serialize_effect_set
+
+effectset.deserialize = deserialize_effect_set
 
 effectset.intersect = function(es1, es2)
 	local es = {}
