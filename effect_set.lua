@@ -6,8 +6,6 @@
 --
 -- A single effect record has these components:
 --
---   A unique ID (uid)
---
 --   A boolean, whether it is dynamic (dynamic)
 --
 --   The effect type name (effect_type)
@@ -27,24 +25,17 @@
 --
 -- Effect Set
 --
--- An effect set represents a many-to-many relation by holding for each index a
--- map from indices to a set of records it indexes. Since the unique ID should be
--- unique, a set of records can instead be represented by a map from IDs to
--- records. The ID table can instead be a simple map to records, since each
--- effect can only have one ID.
---
 -- Has a table uid_table that maps uids to records
 --
 -- Has a field "tables" that holds all the index tables.
 --
 -- Currently, it has index tables:
 --
--- player_table (many-to-many)
--- tag_table (many-to-many)
--- monoid_table (many-to-many)
--- name_table (one-to-many)
--- perm_table (one-to-many)
---
+--   player (many-to-many)
+--   tag (many-to-many)
+--   monoid (many-to-many)
+--   name (one-to-many)
+--   perm (one-to-many)
 --
 -- To serialize, it suffices to just serialize the ID-indexed table, since all
 -- records have an ID.
@@ -63,7 +54,9 @@
 
 
 -- Version of db format
-local db_version
+local db_version = 0
+
+local table_names = { "player", "tag", "monoid", "name", "perm" }
 
 
 -- Returns a set of results
@@ -72,8 +65,7 @@ local function setmap_get(setmap, index)
 end
 
 
-local function setmap_insert(setmap, indices, record)
-	local uid = record.uid
+local function setmap_insert(setmap, indices, uid)
 
 	for k, index in pairs(indices) do
 		local set = setmap[index]
@@ -83,7 +75,7 @@ local function setmap_insert(setmap, indices, record)
 			setmap[index] = set
 		end
 
-		setmap[index][uid] = record
+		set[uid] = true
 	end
 end
 
@@ -112,9 +104,7 @@ local function set_intersect(set1,set2)
 	local res_set = {}
 
 	for k, rec in pairs(set1) do
-		if set2[k] then
-			res_set[k] = rec
-		end
+		res_set[k] = set2[k]
 	end
 
 	return res_set
@@ -192,10 +182,9 @@ monoidal_effects.static = 1
 monoidal_effects.dynamic = 2
 
 
-local function record(id, dyn, effect_type, players, tags, monoids, dur, values)
+local function record(dyn, effect_type, players, tags, monoids, dur, values)
 
-	return { uid = id,
-		 dynamic = dyn,
+	return { dynamic = dyn,
 		 effect_type = effect_type,
 		 players = players,
 		 tags = tags,
@@ -251,6 +240,27 @@ local function effect_set_effects(eset)
 end
 
 
+-- Returns a set of UIDs that match the given index
+local function effect_set_index_set(db, table_name, index)
+
+	return db.tables[table_name][index]
+end
+
+
+local function fill_tables(db)
+
+	db.tables = {}
+
+	for i, table_name in ipairs(table_names) do
+		db.tables[table_name] = {}
+	end
+	
+	for k, v in pairs(db.uid_table) do
+		insert_record_with_uid(k, db, v)
+	end
+end
+
+
 local function add_methods(eset)
 	eset.get = effect_set_get
 	eset.effects = effect_set_effects
@@ -259,6 +269,7 @@ local function add_methods(eset)
 	eset.size = function(self)
 		return #(self.uid_table)
 	end
+	eset.with_index = effect_set_index_set
 end
 
 
@@ -273,11 +284,11 @@ local function make_db()
 	db.tables = {}
 
 	db.uid_table = {}
-	db.tables.player_table = {}
-	db.tables.tag_table = {}
-	db.tables.monoid_table = {}
-	db.tables.name_table = {}
-	db.tables.perm_table = {}
+	db.tables.player = {}
+	db.tables.tag = {}
+	db.tables.monoid = {}
+	db.tables.name = {}
+	db.tables.perm = {}
 
 	add_methods(db)
 end
@@ -286,14 +297,14 @@ end
 -- Mutates the DB to have the new record
 local function insert_record_with_uid(uid, db, record)
 	db.uid_table[uid] = record
-	setmap_insert(db.tables.player_table, record.players, record)
-	setmap_insert(db.tables.tag_table, record.tags, record)
-	setmap_insert(db.tables.monoid_table, record.monoids, record)
-	setmap_insert(db.tables.name_table, {record.effect_type}, record)
+	setmap_insert(db.tables.player, record.players, uid)
+	setmap_insert(db.tables.tag, record.tags, uid)
+	setmap_insert(db.tables.monoid, record.monoids, uid)
+	setmap_insert(db.tables.name, {record.effect_type}, uid)
 
 	local perm = is_perm(record)
 	
-	setmap_insert(db.tables.name_table, {perm}, record)
+	setmap_insert(db.tables.perm, {perm}, uid)
 end
 
 
@@ -302,6 +313,8 @@ local function insert_record(db, record)
 	db.next_id = uid + 1
 
 	insert_record_with_uid(uid, db, record)
+
+	return uid
 end
 
 
@@ -320,11 +333,11 @@ local function delete_record(db, uid)
 
 	db.uid_table[uid] = nil
 
-	setmap_delete(db.tables.player_table, players, uid)
-	setmap_delete(db.tables.tag_table, tags, uid)
-	setmap_delete(db.tables.monoid_table, monoids, uid)
-	setmap_delete(db.tables.name_table, {effect_type}, uid)
-	setmap_delete(db.tables.perm_table, {perm}, uid)
+	setmap_delete(db.tables.player, players, uid)
+	setmap_delete(db.tables.tag, tags, uid)
+	setmap_delete(db.tables.monoid, monoids, uid)
+	setmap_delete(db.tables.name, {effect_type}, uid)
+	setmap_delete(db.tables.perm, {perm}, uid)
 end
 
 
