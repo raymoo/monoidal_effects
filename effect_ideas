@@ -110,9 +110,9 @@ A way to get a relational table of effects (with operations like Haskell's ixset
 
   Indexed by:
 
+  Effect monoid (many-to-many)
   Player name (many-to-many)
   Tag (many-to-many)
-  Group (many-to-many)
   Name (one-to-many?)
   Whether it is permanent
 
