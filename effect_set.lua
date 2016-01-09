@@ -20,8 +20,6 @@
 --
 --   A duration (duration), either the string "perm" or a number of seconds
 --
---   The time it started (time_started)
---
 --
 -- Effect Set
 --
@@ -178,20 +176,15 @@ local function setmap_union(smap1, smap2)
 end
 
 
-monoidal_effects.static = 1
-monoidal_effects.dynamic = 2
-
-
 local function record(dyn, effect_type, players, tags, monoids, dur, values)
 
 	return { dynamic = dyn,
 		 effect_type = effect_type,
 		 players = players,
 		 tags = tags,
-		 monoids = monoids
+		 monoids = monoids,
 		 values = values,
 		 duration = dur,
-		 time_started = os.time()
 	}
 end
 
@@ -225,7 +218,7 @@ end
 -- Returns a set of UIDs that match the given index
 local function effect_set_index_set(db, table_name, index)
 
-	return db.tables[table_name][index]
+	return db.tables[table_name][index] or {}
 end
 
 
@@ -241,40 +234,6 @@ local function fill_tables(db)
 		insert_record_with_uid(k, db, v)
 	end
 end
-
-
-local function add_methods(eset)
-	eset.get = effect_set_get
-	eset.effects = effect_set_effects
-	eset.insert = insert_record
-	eset.delete = delete_record
-	eset.size = function(self)
-		return #(self.uid_table)
-	end
-	eset.with_index = effect_set_index_set
-end
-
-
-local function make_db()
-
-	local db = {}
-
-	db.version = db_version
-
-	db.next_id = 0
-
-	db.tables = {}
-
-	db.uid_table = {}
-	db.tables.player = {}
-	db.tables.tag = {}
-	db.tables.monoid = {}
-	db.tables.name = {}
-	db.tables.perm = {}
-
-	add_methods(db)
-end
-
 
 -- Mutates the DB to have the new record
 local function insert_record_with_uid(uid, db, record)
@@ -321,6 +280,43 @@ local function delete_record(db, uid)
 	setmap_delete(db.tables.name, {effect_type}, uid)
 	setmap_delete(db.tables.perm, {perm}, uid)
 end
+
+
+local function add_methods(eset)
+	eset.get = effect_set_get
+	eset.effects = effect_set_effects
+	eset.insert = insert_record
+	eset.delete = delete_record
+	eset.size = function(self)
+		return #(self.uid_table)
+	end
+	eset.with_index = effect_set_index_set
+end
+
+
+local function make_db()
+
+	local db = {}
+
+	db.version = db_version
+
+	db.next_id = 0
+
+	db.tables = {}
+
+	db.uid_table = {}
+	db.tables.player = {}
+	db.tables.tag = {}
+	db.tables.monoid = {}
+	db.tables.name = {}
+	db.tables.perm = {}
+
+	add_methods(db)
+
+	return db
+end
+
+
 
 
 local function serialize_effect_set(eset)
@@ -379,6 +375,11 @@ effectset.union = function(es1, es2)
 	add_methods(es)
 	return es
 end
+
+effectset.set_intersect = set_intersect
+effectset.set_union = set_union
+
+effectset.record = record
 
 
 return effectset
