@@ -3,6 +3,7 @@ Methods
 get(uid) - Gets the record with the UID, if there is one.
 effects() - An iterator for the effect records, indexed by UID
 insert(record) - Inserts a record, returns the UID
+insert_with_uid(uid, record) - Inserts a record with a specific UID.
 delete(uid) - Deletes the record with that UID, if it exists
 size() - Gets the number of effects
 with_index("index_name", index) - Gets a set of all UIDs with that index.
@@ -14,6 +15,12 @@ effectset.serialize(effectset) - Serializes the effectset
 effectset.deserialize(effectset) - Deserializes
 effectset.intersect - Intersects two effectsets (not much use yet)
 effectset.union - Unions two effectsets (not much use yet)
+
+effectset.set_intersect(s1, s2)
+effectset.set_union(s1, s2)
+
+effectset.record(dyn, effect_type, players, tags, monoids, dur, values) -
+  Construct a record.
 
 Tables
 ------
