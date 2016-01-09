@@ -118,7 +118,7 @@ Cancels all effects from a player with the given tag. If player_name is nil,
 it cancels all matching effects from all players.
 
 monoidal_effects.get_remaining_time(effect_id)
-Gets the remaining time of an effect, in seconds.
+Gets the remaining time of an effect, in seconds, or "perm".
 
 monoidal_effects.get_player_effects("player_name")
 Gets a set of effects applied to the given player
