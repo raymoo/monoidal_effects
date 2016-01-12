@@ -5,7 +5,6 @@ effects() - An iterator for the effect records, indexed by UID
 insert(record) - Inserts a record, returns the UID
 insert_with_uid(uid, record) - Inserts a record with a specific UID.
 delete(uid) - Deletes the record with that UID, if it exists
-size() - Gets the number of effects
 with_index("index_name", index) - Gets a set of all UIDs with that index.
 
 Other functions
