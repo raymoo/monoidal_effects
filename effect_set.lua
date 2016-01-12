@@ -282,15 +282,27 @@ local function delete_record(db, uid)
 end
 
 
+local methods =
+	{
+		get = effect_set_get,
+		effects = effect_set_effects,
+		insert = insert_record,
+		delete = delete_record,
+		with_index = effect_set_index_set,
+	}
+
+
 local function add_methods(eset)
-	eset.get = effect_set_get
-	eset.effects = effect_set_effects
-	eset.insert = insert_record
-	eset.delete = delete_record
-	eset.size = function(self)
-		return #(self.uid_table)
+	for name, method in pairs(methods) do
+		eset[name] = method
 	end
-	eset.with_index = effect_set_index_set
+end
+
+
+local function del_methods(eset)
+	for name, method in pairs(methods) do
+		eset.name = nil
+	end
 end
 
 
@@ -322,22 +334,29 @@ end
 local function serialize_effect_set(eset)
 	local serialize_this = shallow_copy(eset.uid_table)
 
-	serialize_this.get = nil
-	serialize_this.effects = nil
-	serialize_this.tables = nil
+	del_methods(eset)
 
 	return minetest.serialize(serialize_this)
 end
 
 
 local function deserialize_effect_set(str)
-	local deserialized = minetest.deserialize(str)
+	local uid_table = minetest.deserialize(str)
+	local deserialized = {uid_table = uid_table, tables = {}}
 
-	if (deserialized == nil) then
+	local tables = {}
+
+	for i, table_name in ipairs(table_names) do
+		tables[table_name] = {}
+	end
+
+	deserialized.tables = tables
+
+	if (uid_table == nil) then
 		return nil
 	end
 
-	for k, v in pairs(deserialized) do
+	for k, v in pairs(uid_table) do
 		insert_record_with_uid(k, deserialized, v)
 	end
 	
