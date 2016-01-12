@@ -307,14 +307,19 @@ local function update_hud(player)
 			local active_info = active_effects[uid]
 			local effect = effects:get(uid)
 
-			if (effect ~= nil and active_info ~= nil) then
+			if (effect ~= nil) then
 				local effect_type = effect.effect_type
 				local type_def = types[effect_type]
 				local text = hudinfo.text
 				local desc = type_def.disp_name
-				local time_started = active_info.time_started
-				local dur = active_info.duration
-				local time_left = os.difftime(time_started + dur, now)
+				local time_left
+				if (active_info == nil) then
+					time_left = "perm"
+				else
+					local time_started = active_info.time_started
+					local dur = active_info.duration
+					time_left = os.difftime(time_started + dur, now)
+				end
 
 				local new_text = desc .. " ("..tostring(time_left).." s)"
 
@@ -689,4 +694,82 @@ minetest.register_on_dieplayer(function(player)
 				monoidal_effects.cancel_effect(uid)
 			end
 		end
+end)
+
+-- Save, HUD update, effect update timers
+local last_save = 0
+local last_hud = 0
+local last_effect = 0
+
+
+-- How many more saves until should backup. Unit is number of saves.
+local backup_timer = 0
+
+local function save_effects(path)
+	for uid in pairs(active_effects) do
+		save_active_effect(uid)
+	end
+
+	local str = effectset.serialize(effects)
+
+	local file = io.open(path, "wb")
+	file:write(str)
+	file:close()
+end
+
+local function on_save_timer()
+	save_effects(save_path)
+	if (backup_timer <= 0) then
+		save_effects(backup_path)
+		backup_timer = backup_interval
+	else
+		backup_timer = backup_timer - 1
+	end
+end
+
+local function on_hud_timer()
+
+	for i, player in ipairs(minetest.get_connected_players()) do
+	
+	update_hud(player)
+	end
+end
+
+local function update_effects()
+	local now = os.time()
+
+	for uid, active_info in pairs(active_effects) do
+		local started = active_info.time_started
+		local dur = active_info.duration
+		local time_left = os.difftime(started + dur, now)
+
+		if time_left <= 0 then
+			monoidal_effects.cancel_effect(uid)
+		end
+	end
+end
+
+minetest.register_globalstep(function(dtime)
+
+		local now = os.time()
+
+		if os.difftime(now, last_save) >= save_interval then
+			on_save_timer()
+			last_save = now
+		end
+
+		if os.difftime(now, last_hud) >= hud_interval then
+			on_hud_timer()
+			last_hud = now
+		end
+
+		if os.difftime(now, last_effect) >= effect_interval then
+			update_effects()
+			last_effect = now
+		end
+end)
+
+minetest.register_on_shutdown(function()
+		save_effects(save_path)
+		save_effects(backup_path)
 end)
