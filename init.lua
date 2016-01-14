@@ -397,9 +397,9 @@ monoidal_effects.apply_effect = function(effect_type, dur, player_name, values)
 
 	local players = {player_name}
 
-	local tags = type_def[tags]
+	local tags = type_def.tags
 
-	local monoids = type_def[monoids]
+	local t_monoids = type_def.monoids
 
 	local record =
 		effectset.record(dyn, effect_type, players, tags, monoids, dur, values)
@@ -423,7 +423,7 @@ monoidal_effects.apply_effect = function(effect_type, dur, player_name, values)
 
 	if (player ~= nil) then
 	
-		for monoid in pairs(monoids) do
+		for monoid in pairs(t_monoids) do
 			local existing = get_monoid_value(monoid, player_name)
 
 			local new_val
