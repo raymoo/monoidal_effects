@@ -297,8 +297,7 @@ local function add_hud(player, uid, disp_name, dur, icon)
 end
 
 
-local function update_hud(player)
-	local now = os.time()
+local function update_hud(now, player)
 	local p_name = player:get_player_name()
 	local p_huds = huds[p_name]
 
@@ -729,9 +728,11 @@ end
 
 local function on_hud_timer()
 
+	local now = os.time()
+
 	for i, player in ipairs(minetest.get_connected_players()) do
 	
-	update_hud(player)
+	update_hud(now, player)
 	end
 end
 
