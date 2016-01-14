@@ -1,6 +1,6 @@
 minetest.log("info", "[monoidal_effects] Loading mod")
 
-local monoidal_effects = {}
+monoidal_effects = {}
 
 local mod_path = minetest.get_modpath("monoidal_effects") .. "/"
 local world_path = minetest.get_worldpath() .. "/"
@@ -773,3 +773,8 @@ minetest.register_on_shutdown(function()
 		save_effects(save_path)
 		save_effects(backup_path)
 end)
+
+
+local debug = minetest.setting_getbool("debug_effects")
+
+if debug then dofile(mod_path.."test_effects.lua") end
