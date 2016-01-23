@@ -30,11 +30,23 @@ monoidal_effects.register_type("monoidal_effects:half_speed",
 				 values = { ["monoidal_effects:speed"] = 0.5 },
 })
 
+monoidal_effects.register_type("monoidal_effects:three_speed",
+			       { disp_name = "3x Speed",
+				 tags = {test = true},
+				 monoids = {["monoidal_effects:speed"] = true},
+				 cancel_on_death = true,
+				 values = { ["monoidal_effects:speed"] = 3 },
+})
 
 minetest.register_on_joinplayer(function(player)
 
 		monoidal_effects.apply_effect("monoidal_effects:half_speed",
-					      10,
+					      4,
+					      player:get_player_name()
+		)
+
+		monoidal_effects.apply_effect("monoidal_effects:three_speed",
+					      2,
 					      player:get_player_name()
 		)
 end)
