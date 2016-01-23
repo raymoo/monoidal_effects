@@ -63,7 +63,7 @@ local function setmap_get(setmap, index)
 end
 
 
-local function setmap_insert(setmap, indices, uid)
+local function setmap_insert(setmap, indices, uid, record)
 
 	for index, v in pairs(indices) do
 		local set = setmap[index]
@@ -73,14 +73,14 @@ local function setmap_insert(setmap, indices, uid)
 			setmap[index] = set
 		end
 
-		set[uid] = true
+		set[uid] = record
 	end
 end
 
 
 local function setmap_delete(setmap, indices, uid)
 
-	for k, index in pairs(indices) do
+	for index, v in pairs(indices) do
 		local set = setmap[index]
 
 		if set ~= nil then
@@ -101,7 +101,7 @@ local function set_intersect(set1,set2)
 
 	local res_set = {}
 
-	for k, rec in pairs(set1) do
+	for k in pairs(set1) do
 		res_set[k] = set2[k]
 	end
 
@@ -238,14 +238,14 @@ end
 -- Mutates the DB to have the new record
 local function insert_record_with_uid(uid, db, record)
 	db.uid_table[uid] = record
-	setmap_insert(db.tables.player, record.players, uid)
-	setmap_insert(db.tables.tag, record.tags, uid)
-	setmap_insert(db.tables.monoid, record.monoids, uid)
-	setmap_insert(db.tables.name, {[record.effect_type] = true}, uid)
+	setmap_insert(db.tables.player, record.players, uid, record)
+	setmap_insert(db.tables.tag, record.tags, uid, record)
+	setmap_insert(db.tables.monoid, record.monoids, uid, record)
+	setmap_insert(db.tables.name, {[record.effect_type] = true}, uid, record)
 
 	local perm = is_perm(record)
 	
-	setmap_insert(db.tables.perm, {[perm] = true}, uid)
+	setmap_insert(db.tables.perm, {[perm] = true}, uid, record)
 end
 
 

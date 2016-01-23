@@ -78,7 +78,17 @@ local function calculate_monoid_value(p_name, m_name)
 
 	local p_m_effects = effectset.set_intersect(p_effects, m_effects)
 
-	
+	for k, rec in pairs(p_m_effects) do
+		local eff_type = rec.effect_type
+		local type_def = types[eff_type]
+
+		if type_def ~= nil then
+			if type_def.values[m_name] ~= nil then
+				p_m_effects[k] = type_def.values[m_name]
+			end
+		end
+	end
+
 	local fold = monoids[m_name].fold
 
 	local res = fold(p_m_effects)
@@ -356,14 +366,14 @@ monoidal_effects.apply_effect = function(effect_type, dur, player_name, values)
 
 	local dyn = type_def.dynamic
 
-	local players = {player_name}
+	local players = {[player_name] = "true"}
 
 	local tags = type_def.tags
 
 	local t_monoids = type_def.monoids
 
 	local record =
-		effectset.record(dyn, effect_type, players, tags, monoids, dur, values)
+		effectset.record(dyn, effect_type, players, tags, t_monoids, dur, values)
 
 	local p_cache = monoid_cache[player_name]
 
@@ -435,7 +445,7 @@ monoidal_effects.cancel_effect = function(uid)
 
 	local effect = effects:get(uid)
 	local players = effect.players
-	local monoids = effect.monoids
+	local eff_monoids = effect.monoids
 
 	for i, player in ipairs(all_players) do
 		local p_name = player:get_player_name()
@@ -451,8 +461,8 @@ monoidal_effects.cancel_effect = function(uid)
 	for p_name in pairs(player_set) do
 		old_vals[p_name] = {}
 		local p_vals = old_vals[p_name]
-		for monoid in pairs(monoids) do
-			p_vals[monoid] = get_monoid_value(monoid, player)
+		for monoid in pairs(eff_monoids) do
+			p_vals[monoid] = get_monoid_value(monoid, p_name)
 		end
 	end
 
@@ -460,9 +470,9 @@ monoidal_effects.cancel_effect = function(uid)
 
 	for p_name, player in pairs(player_set) do
 		local p_vals = old_vals[p_name]
-		for monoid in pairs(monoids) do
+		for monoid in pairs(eff_monoids) do
 			clear_cache(monoid, p_name)
-			local val = get_monoid_value(p_name, monoid)
+			local val = get_monoid_value(monoid, p_name)
 			local mon_def = monoids[monoid]
 
 			if (mon_def == nil) then
@@ -476,9 +486,9 @@ monoidal_effects.cancel_effect = function(uid)
 				if p_huds ~= nil then
 					local hudinfo = p_huds[uid]
 					if hudinfo ~= nil then
-						player:remove_hud(hudinfo.text)
+						player:hud_remove(hudinfo.text)
 						if hudinfo.icon ~= nil then
-							player:remove_hud(hudinfo.icon)
+							player:hud_remove(hudinfo.icon)
 						end
 					end
 					p_huds[uid] = nil
@@ -554,7 +564,7 @@ local function apply_effects(player)
 
 	local p_effects = monoidal_effects.get_player_effects(p_name)
 
-	local monoids = {}
+	local eff_monoids = {}
 
 	for uid in pairs(p_effects) do
 
@@ -563,12 +573,12 @@ local function apply_effects(player)
 
 		if (effect ~= nil) then
 			for monoid in pairs(effect.monoids) do
-				monoids[monoid] = true
+				eff_monoids[monoid] = true
 			end
 		end
 	end
 
-	for monoid in pairs(monoids) do
+	for monoid in pairs(eff_monoids) do
 		local mon_def = monoids[monoid]
 
 		if (mon_def ~= nil) then
