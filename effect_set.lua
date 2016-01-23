@@ -312,7 +312,7 @@ local function make_db()
 
 	db.version = db_version
 
-	db.next_id = 0
+	db.next_id = 1
 
 	db.tables = {}
 

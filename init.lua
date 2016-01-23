@@ -76,7 +76,7 @@ local function calculate_monoid_value(p_name, m_name)
 
 	local m_effects = effects:with_index("monoid", m_name)
 
-	local p_m_effects = effectset.set_union(p_effects, m_effects)
+	local p_m_effects = effectset.set_intersect(p_effects, m_effects)
 
 	
 	local fold = monoids[m_name].fold
@@ -449,8 +449,8 @@ monoidal_effects.cancel_effect = function(uid)
 	if (effect == nil) then return end
 
 	for p_name in pairs(player_set) do
-		old_vals[player] = {}
-		local p_vals = old_vals[player]
+		old_vals[p_name] = {}
+		local p_vals = old_vals[p_name]
 		for monoid in pairs(monoids) do
 			p_vals[monoid] = get_monoid_value(monoid, player)
 		end
@@ -488,9 +488,10 @@ monoidal_effects.cancel_effect = function(uid)
 	end
 
 	local active_data = active_effects[uid]
+	active_effects[uid] = nil
 
 	if active_data ~= nil then
-		for player, set in pairs(active_data.players) do
+		for i, player in ipairs(active_data.players) do
 			player_effects[player][uid] = nil
 		end
 	end
