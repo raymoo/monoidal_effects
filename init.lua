@@ -134,7 +134,7 @@ end
 
 -- Saves the current remaining duration of an effect
 local function save_active_effect(uid)
-	local effect = active_effect[uid]
+	local effect = active_effects[uid]
 
 	if effect == nil then
 		minetest.log("error",
@@ -142,7 +142,7 @@ local function save_active_effect(uid)
 		return
 	end
 
-	local new_dur = os.difftime(effect.dur + effect.time_started, os.time())
+	local new_dur = os.difftime(effect.duration + effect.time_started, os.time())
 
 	local effect_record = effects:get(uid)
 
@@ -166,7 +166,7 @@ local function hibernate_active_effect(uid)
 		error("Not an active effect")
 	end
 
-	local new_dur = effect.dur - (os.difftime(os.time(), effect.time_started))
+	local new_dur = effect.duration - (os.difftime(os.time(), effect.time_started))
 
 	local effect_record = effects:get(uid)
 
@@ -487,7 +487,7 @@ monoidal_effects.cancel_effect = function(uid)
 		end
 	end
 
-	local active_data = active_effects(uid)
+	local active_data = active_effects[uid]
 
 	if active_data ~= nil then
 		for player, set in pairs(active_data.players) do
