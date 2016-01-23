@@ -42,12 +42,6 @@ end
 -- Name-indexed table of monoid definitions
 local monoids = {}
 
--- Child monoids - map from parent monoid names to a list of tables with:
---
---   name - the child monoid's name
---   convert - the conversion function
-local children = {}
-
 -- Name-indexed table of effect type definitions
 local types = {}
 
@@ -76,7 +70,7 @@ local huds = {}
 local monoid_cache = {}
 
 
--- Calculates monoid value, ignoring children
+-- Calculates monoid value, caching it
 local function calculate_monoid_value(p_name, m_name)
 	local p_effects = effects:with_index("player", p_name)
 
@@ -110,34 +104,14 @@ local function clear_cache(m_name, p_name)
 end
 
 
--- Gets monoid value, including children
+-- Gets monoid value
 local function get_monoid_value(m_name, p_name)
-	local children = children[m_name]
-
-	local mon_def = monoids[m_name]
-
-	if mon_def == nil then error("Bad monoid") end
-
-	local combine = mon_def.combine
-
-	local child_tot = mon_def.identity
-
-	if (children ~= nil) then
-		for i, child in ipairs(children) do
-			local val = get_monoid_value(child.name, p_name)
-			local convert = child.convert or function(x) return x end
-			if val ~= nil then
-				child_tot = combine(child_tot, convert(val))
-			end
-		end
-	end
-	
 	local cached = monoid_cache[p_name] and monoid_cache[p_name][m_name]
 
 	if (cached == nil) then
-		return combine(child_tot, calculate_monoid_value(p_name, m_name))
+		return calculate_monoid_value(p_name, m_name)
 	else
-		return combine(child_tot, cached)
+		return cached
 	end
 end
 
@@ -372,19 +346,6 @@ monoidal_effects.register_type = function(name, def)
 end
 
 
-monoidal_effects.add_child_monoid = function (parent_name, child_name, convert)
-	local entry = { name = child_name,
-			convert = convert
-	}
-
-	if children[parent_name] == nil then
-		children[parent_name] = {}
-	end
-
-	table.insert(children[parent_name], entry)
-end
-
-
 monoidal_effects.apply_effect = function(effect_type, dur, player_name, values)
 
 	local type_def = types[effect_type]
@@ -428,15 +389,15 @@ monoidal_effects.apply_effect = function(effect_type, dur, player_name, values)
 
 			local new_val
 
+			local mon_def = monoids[monoid]
+
 			if (existing == nil) then
 				new_val = eff_values[monoid]
 			else
-				new_val = type_def.combine(existing, eff_values[monoid])
+				new_val = mon_def.combine(existing, eff_values[monoid])
 			end
 
 			p_cache[monoid] = new_val
-
-			local mon_def = monoids[monoid]
 
 			local apply = mon_def.apply
 

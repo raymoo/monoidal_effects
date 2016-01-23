@@ -91,11 +91,6 @@ you should prepend your mod name, as in nodes/craftitems.
 monoidal_effects.register_type("name", type_def)
 Registers a new effect type. name needs to be unique.
 
-monoidal_effects.add_child_monoid("parent_name", "child_name"[, convert])
-Sets a monoid to be the child of another. When calculating the combined value
-for the parent monoid, values of the child monoids will also be mixed in, to
-the left of all "actual" values, in order of registration.
-
 monoidal_effects.apply_effect("effect_type", duration, "player_name"[, values])
 Applies a new effect of the specified type. duration should be a positive
 integer number of seconds or the string "perm". values is an optional table
