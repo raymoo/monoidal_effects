@@ -24,8 +24,8 @@ monoidal_effects.register_monoid("monoidal_effects:speed",
 -- Static half speed
 monoidal_effects.register_type("monoidal_effects:half_speed",
 			       { disp_name = "Half Speed",
-				 tags = "test",
-				 monoids = "monoidal_effects:speed",
+				 tags = {test = true},
+				 monoids = {["monoidal_effects:speed"] = true},
 				 cancel_on_death = true,
 				 values = { ["monoidal_effects:speed"] = 0.5 },
 })
