@@ -65,7 +65,7 @@ end
 
 local function setmap_insert(setmap, indices, uid)
 
-	for k, index in pairs(indices) do
+	for index, v in pairs(indices) do
 		local set = setmap[index]
 		
 		if (not set) then
@@ -241,11 +241,11 @@ local function insert_record_with_uid(uid, db, record)
 	setmap_insert(db.tables.player, record.players, uid)
 	setmap_insert(db.tables.tag, record.tags, uid)
 	setmap_insert(db.tables.monoid, record.monoids, uid)
-	setmap_insert(db.tables.name, {record.effect_type}, uid)
+	setmap_insert(db.tables.name, {[record.effect_type] = true}, uid)
 
 	local perm = is_perm(record)
 	
-	setmap_insert(db.tables.perm, {perm}, uid)
+	setmap_insert(db.tables.perm, {[perm] = true}, uid)
 end
 
 
@@ -277,8 +277,8 @@ local function delete_record(db, uid)
 	setmap_delete(db.tables.player, players, uid)
 	setmap_delete(db.tables.tag, tags, uid)
 	setmap_delete(db.tables.monoid, monoids, uid)
-	setmap_delete(db.tables.name, {effect_type}, uid)
-	setmap_delete(db.tables.perm, {perm}, uid)
+	setmap_delete(db.tables.name, {[effect_type] = true}, uid)
+	setmap_delete(db.tables.perm, {[perm] = true}, uid)
 end
 
 
@@ -334,7 +334,7 @@ end
 local function serialize_effect_set(eset)
 	local serialize_this = shallow_copy(eset.uid_table)
 
-	del_methods(eset)
+	serialize_this.next_id = eset.next_id
 
 	return minetest.serialize(serialize_this)
 end
@@ -351,6 +351,8 @@ local function deserialize_effect_set(str)
 	end
 
 	deserialized.tables = tables
+	deserialized.next_id = uid_table.next_id
+	uid_table.next_id = nil
 
 	if (uid_table == nil) then
 		return nil
