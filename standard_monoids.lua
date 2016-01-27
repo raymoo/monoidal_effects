@@ -62,8 +62,9 @@ monoidal_effects.register_monoid("gravity",
 })
 
 
--- Max HP modifier monoid. It combines by addition. Values should be nonnegative
--- integers.
+-- Max HP modifier monoid. It combines by addition. Values should be integers.
+-- A player's max hp will never be sent below 1, even if the combined modifier
+-- is -20 or below.
 monoidal_effects.register_monoid("hp_max",
 				 { combine = function(x, y) return x + y end,
 				   fold = function(elems)
@@ -76,7 +77,10 @@ monoidal_effects.register_monoid("hp_max",
 				   end,
 				   identity = 0,
 				   apply = function(offset, player)
-					   player:set_properties({ hp_max = offset + 20 })
+					   local real_offset = math.max(offset,1)
+					   player:set_properties(
+						   { hp_max = real_offset + 20 }
+					   )
 				   end,
 })
 
