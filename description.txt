@@ -1,0 +1,2 @@
+monoidal_effects is a framework for player status effects and state that allows
+multiple effects to affect the same state at once.
