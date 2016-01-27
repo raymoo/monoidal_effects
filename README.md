@@ -133,3 +133,19 @@ The duration is in seconds.
 
 To see some ways you can query or affect already-applied effects, take a look
 at API.txt.
+
+Standard Monoids
+================
+These monoids "come with" monoidal_effects, and are not prefixed by any mod
+name:
+  - "speed", "jump", "gravity" - These are monoids for the physics overrides,
+  and are combined using multiplication. The gravity monoid may have negative
+  multipliers.
+  - "hp_max" - A monoid for max health modifiers. Valid effect values are
+  integers, which are combined with addition. The final result is added to
+  20 to get the real max health of a player.
+  - "fly" - A monoid for the fly permission. Valid effect values are booleans,
+  which say whether flying should be allowed. These are combined with or. That
+  means that if there is any single effect providing fly, the player can fly.
+  The identity is false, since the player shouldn't be able to fly normally.
+  - "noclip" - The same as above, but for noclip.
