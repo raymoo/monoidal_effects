@@ -82,10 +82,14 @@ local function calculate_monoid_value(p_name, m_name)
 		local eff_type = rec.effect_type
 		local type_def = types[eff_type]
 
-		if type_def ~= nil then
-			if type_def.values[m_name] ~= nil then
-				p_m_effects[k] = type_def.values[m_name]
-			end
+		if rec.dynamic then
+			p_m_effects[k] = rec.values[m_name]
+		elseif type_def ~= nil and type_def.values[m_name] ~= nil then
+			p_m_effects[k] = type_def.values[m_name]
+		else
+			p_m_effects[k] = nil
+			minetest.log("error",
+				     "Unknown effect type " .. eff_type)
 		end
 	end
 
@@ -208,7 +212,7 @@ local function mk_hud(uid, disp_name, dur, offset, icon)
 	text_def = { hud_elem_type = "text",
 		     position = { x = 1, y = 0.3 },
 		     name = "effect_" .. uid,
-		     text = disp_name .. " (" .. dur .. "s)",
+		     text = disp_name .. " (" .. dur .. " s)",
 		     scale = { x = 170, y = 20 },
 		     alignment = { x = -1, y = 0 },
 		     direction = 1,
@@ -366,6 +370,14 @@ monoidal_effects.apply_effect = function(effect_type, dur, player_name, values)
 
 	local dyn = type_def.dynamic
 
+	local eff_values
+
+	if dyn and values ~= nil then
+		eff_values = values
+	else
+		eff_values = type_def.values
+	end
+
 	local players = {[player_name] = "true"}
 
 	local tags = type_def.tags
@@ -373,21 +385,13 @@ monoidal_effects.apply_effect = function(effect_type, dur, player_name, values)
 	local t_monoids = type_def.monoids
 
 	local record =
-		effectset.record(dyn, effect_type, players, tags, t_monoids, dur, values)
+		effectset.record(dyn, effect_type, players, tags, t_monoids, dur, eff_values)
 
 	local p_cache = monoid_cache[player_name]
 
 	if (p_cache == nil) then
 		p_cache = {}
 		monoid_cache[player_name] = p_cache
-	end
-
-	local eff_values
-
-	if (dyn) then
-		eff_values = values
-	else
-		eff_values = type_def.values
 	end
 
 	local player = minetest.get_player_by_name(player_name)
