@@ -365,7 +365,8 @@ monoidal_effects.apply_effect = function(effect_type, dur, player_name, values)
 	local type_def = types[effect_type]
 
 	if (type_def == nil) then
-		error("Tried to apply nonexistent effect type")
+		minetest.log("error", "Tried to apply nonexistent effect type " .. effect_type)
+		return nil
 	end
 
 	local dyn = type_def.dynamic
