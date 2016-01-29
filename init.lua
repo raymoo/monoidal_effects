@@ -636,7 +636,7 @@ minetest.register_on_joinplayer(function(player)
 			if effect ~=nil then
 				local type_def = types[effect.effect_type]
 
-				if type_def ~= nil then
+				if type_def ~= nil and not type_def.hidden then
 					add_hud(player,
 						uid,
 						type_def.disp_name,
