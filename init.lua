@@ -752,6 +752,7 @@ minetest.register_on_shutdown(function()
 		save_effects(backup_path)
 end)
 
+dofile(mod_path .. "commands.lua")
 dofile(mod_path .. "standard_monoids.lua")
 
 local debug = minetest.setting_getbool("debug_effects")
