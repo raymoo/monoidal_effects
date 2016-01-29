@@ -6,7 +6,7 @@ minetest.register_chatcommand("apply_effect",
 	  privs = { monoid_master = true },
 	  func = function(p_name, param)
 		  local target, eff, dur =
-			  param:match("^[^ ]+) +([^ ]+) +(.+)$")
+			  param:match("^([^ ]+) +([^ ]+) +(.+)$")
 		  if not target then
 			  return false, "Target name required"
 		  end

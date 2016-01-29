@@ -91,19 +91,6 @@ is an empty table.
 
 API
 ===
-A way to register new effect monoids
-
-A way to register new effect types
-
-A way to register an effect monoid as the child of another
-(so its values contribute)
-
-A way to get the current status for a player, in some effect group
-
-A way to apply an effect to a player
-
-A way to remove an effect from a player
-
 A way to get an effect's information by id
 
 A way to get a relational table of effects (with operations like Haskell's ixset)
