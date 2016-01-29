@@ -356,6 +356,7 @@ end
 
 
 monoidal_effects.register_type = function(name, def)
+	def.tags = def.tags or {}
 	types[name] = def
 end
 
