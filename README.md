@@ -82,9 +82,9 @@ monoidal_effects.register_monoid("speed",
     end,
     identity = 1,
     apply = function(mult, player)
-      local or = player:get_physics_override()
-      or.speed = mult
-      player:set_physics_override(or)
+      local ov = player:get_physics_override()
+      ov.speed = mult
+      player:set_physics_override(ov)
     end,
 })
 ```
