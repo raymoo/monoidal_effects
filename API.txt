@@ -118,5 +118,8 @@ Gets the remaining time of an effect, in seconds, or "perm".
 monoidal_effects.get_player_effects("player_name")
 Gets a set of effects applied to the given player
 
+monoidal_effects.get_values(uid)
+Returns the value table associated with an effect, if it exists
+
 monoidal_effects.get_monoid_value("monoid_name", "player_name")
 Gets the current combined value for a monoid and player.

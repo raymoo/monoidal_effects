@@ -556,12 +556,16 @@ monoidal_effects.get_remaining_time = function(uid)
 end
 
 monoidal_effects.get_player_effects = function(p_name)
-
 	return effects:with_index("player", p_name)
 end
 
-monoidal_effects.get_monoid_value = get_monoid_value
+monoidal_effects.get_values = function(uid)
+	local eff = effects:get(uid)
 
+	return eff.values
+end
+
+monoidal_effects.get_monoid_value = get_monoid_value
 
 local function apply_effects(player)
 	local p_name = player:get_player_name()
