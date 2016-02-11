@@ -1,5 +1,41 @@
 -- Standard effect monoids, to provide canonicity.
 
+local function mult(x, y) return x * y end
+
+local function mult_fold(elems)
+	local tot = 1
+	
+	for k,v in pairs(elems) do
+		tot = tot * v
+	end
+
+	return tot
+end
+
+local function v_mult(v1, v2)
+	local res = {}
+
+	for k, v in pairs(v1) do
+		res[k] = v * v2[k]
+	end
+
+	return res
+end
+
+local function v_mult_fold(identity)
+
+	return function(elems)
+		local tot = identity
+
+		for k, v in pairs(elems) do
+			tot = v_mult(tot, v)
+		end
+
+		return tot
+	end
+end
+
+
 -- Speed monoid. Effect values are speed multipliers. Must be nonnegative
 -- numbers.
 monoidal_effects.register_monoid("speed",
@@ -137,4 +173,31 @@ monoidal_effects.register_monoid("noclip",
 					   minetest.set_player_privs(p_name, privs)
 
 				   end,
+})
+
+local def_col_scale = { x=0.3, y=1, z=0.3 }
+
+-- Collisionbox scaling factor. Values are a vector of x, y, z multipliers.
+monoidal_effects.register_monoid("collisionbox", {
+	combine = v_mult,
+	fold = v_mult_fold({x=1, y=1, z=1}),
+	identity = {x=1, y=1, z=1},
+	apply = function(multiplier, player)
+		local v = vector.multiply(def_col_scale, multiplier)
+
+		player:set_properties({
+			collisionbox = { -v.x, -v.y, -v.z, v.z, v.y, v.z }
+		})
+	end,
+})
+
+monoidal_effects.register_monoid("visual_size", {
+	combine = v_mult,
+	fold = v_mult_fold({x=1, y=1}),
+	identity = {x=1, y=1},
+	apply = function(multiplier, player)
+		player:set_properties({
+			visual_size = multiplier
+		})
+	end,
 })
